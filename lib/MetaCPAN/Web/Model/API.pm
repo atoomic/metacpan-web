@@ -46,6 +46,12 @@ has api_secure => (
     required => 1,
 );
 
+has request_uri => (
+    is       => 'ro',
+    clearer  => '_clear_request_uri',
+    writer   => '_set_request_uri',
+);
+
 =head2 COMPONENT
 
 Set C<api_secure> config parameters from the app config object.
@@ -58,6 +64,17 @@ sub COMPONENT {
     $config->{api_secure} = $app->config->{api_secure};
 
     return $self->SUPER::COMPONENT( $app, $config );
+}
+
+sub ACCEPT_CONTEXT {
+    my ( $self, $c ) = @_;
+    if (ref $c and my $r = $c->request) {
+        $self->_set_request_uri($r->uri);
+    }
+    else {
+        $self->clear_request_uri;
+    }
+    return $self;
 }
 
 sub model {
@@ -78,7 +95,7 @@ sub request {
         $url->query_param( $param => $params->{$param} );
     }
 
-    my $current_url = Log::Log4perl::MDC->get('url');
+    my $current_url = $self->request_uri;
 
     my $request = HTTP::Request->new(
         (
@@ -89,7 +106,7 @@ sub request {
         $url,
         [
             ( $search      ? ( 'Content-Type' => 'application/json' ) : () ),
-            ( $current_url ? ( 'Referer'      => $current_url )       : () ),
+            ( $current_url ? ( 'Referer'      => $current_url->as_string ) : () ),
         ],
     );
 
