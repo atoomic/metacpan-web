@@ -23,6 +23,8 @@ sub loop {
     $loop ||= IO::Async::Loop->new;
 }
 
+my $logger = Log::Log4perl->get_logger;
+
 my $client;
 
 sub client {
@@ -116,6 +118,13 @@ sub request {
     $self->client->do_request( request => $request )->transform(
         done => sub {
             my $response = shift;
+            if ($logger->is_debug) {
+                my $content = $request->content;
+                if (length $content > 40) {
+                    $content = substr($content, 0, 37) . '...';
+                }
+                $logger->debug(sprintf q[API: "%s %s %s" %s %s%s], $request->method, $url->path, $response->protocol, $response->code, length ${$response->content_ref}, ($content ? " '$content'" : ''));
+            }
             my $data = $response->decoded_content( charset => 'none' );
             my $content_type = $response->header('content-type') || '';
 
