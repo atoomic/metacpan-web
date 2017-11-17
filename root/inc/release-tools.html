@@ -35,8 +35,9 @@
     </button>
 </li>
 <li>
-    <form action="/search">
-        <input type="hidden" name="q" value="dist:<% release.distribution %>">
+    <form action="https://grep.metacpan.org/search">
+        <input type="hidden" name="qd" value="<% release.distribution %>">
+        <input type="hidden" name="source" value="metacpan">
         <input type="search" name="q" placeholder="Search distribution" style="width: 153px" class="form-control tool-bar-form">
         <input type="submit" style="display: none">
     </form>
